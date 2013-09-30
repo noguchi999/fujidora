@@ -112,7 +112,6 @@ private:
     CCSize winSize;
     CCPoint blockAreaStartPoint;
     CCPoint blockAreaEndPoint;
-    CCPoint previousBlockLocation;
 
     void initForVariables();
     void createBackground();

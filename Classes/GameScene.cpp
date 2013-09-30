@@ -12,7 +12,6 @@ GameScene::GameScene()
 ,previousTag(0)
 ,score(0)
 ,winSize(CCDirector::sharedDirector()->getWinSize())
-,previousBlockLocation(ccp(0, 0))
 {
     srand((unsigned)time(NULL));
 }
