@@ -4,7 +4,8 @@
 #include "cocos2d.h"
 #include "Config.h"
 #include "BlockSprite.h"
-#include "CsvReader.h"
+
+#include <math.h>
 
 using namespace std;
 using namespace cocos2d;
@@ -100,7 +101,6 @@ private:
     CCSprite* background;
     float blockSize;
     vector<kBlock> blockTypes;
-    bool isAnimating;
     int score;
     int currentTag;
     int tmpCurrentTag;
@@ -112,6 +112,7 @@ private:
     CCSize winSize;
     CCPoint blockAreaStartPoint;
     CCPoint blockAreaEndPoint;
+    CCPoint previousBlockLocation;
 
     void initForVariables();
     void createBackground();
@@ -143,8 +144,7 @@ private:
     vector<BlockFiledsPositionIndex> verticalBlockCounting(int left, int top, kBlock block_type);
     vector<BlockFiledsPositionIndex> crossHorizontalBlockCounting(int left, int top, kBlock block_type);
     int crossBlockCounting(int left, int top, kBlock block_type);
-    
-    void testCreateBlock();
+    bool isReverseSwipe(CCTouch* pTouch);
 };
 
 #endif /* defined(__fujidora__GameScene__) */

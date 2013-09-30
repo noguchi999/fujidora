@@ -11,8 +11,8 @@ GameScene::GameScene()
 ,tmpCurrentTag(0)
 ,previousTag(0)
 ,score(0)
-,isAnimating(false)
 ,winSize(CCDirector::sharedDirector()->getWinSize())
+,previousBlockLocation(ccp(0, 0))
 {
     srand((unsigned)time(NULL));
 }
@@ -38,8 +38,7 @@ bool GameScene::init()
 
     initForVariables();
     createBackground();
-    //createBlock();
-    testCreateBlock();
+    createBlock();
     createHighScoreLabel();
     createResetButton();
     
@@ -53,7 +52,7 @@ bool GameScene::init()
 }
 
 bool GameScene::ccTouchBegan(CCTouch* pTouch, CCEvent* pEvent)
-{    
+{
     if (currentTag == 0)
     {
         CCPoint touchPoint = background->convertTouchToNodeSpace(pTouch);
@@ -74,7 +73,7 @@ bool GameScene::ccTouchBegan(CCTouch* pTouch, CCEvent* pEvent)
         }
     }
     
-    return !isAnimating;
+    return true;
 }
 
 void GameScene::ccTouchMoved(CCTouch* pTouch, CCEvent* pEvent)
@@ -85,12 +84,21 @@ void GameScene::ccTouchMoved(CCTouch* pTouch, CCEvent* pEvent)
     {
         CCNode* tmp_current = background->getChildByTag(tmpCurrentTag);
         tmp_current->setPosition(touchPoint);
+        if (previousTag != 0)
+        {
+            CCNode* previousBlock = background->getChildByTag(previousTag);
+            if (!previousBlock->boundingBox().containsPoint(touchPoint))
+            {
+                previousTag = 0;
+            }
+        }
+
         if (touched_block.tag != 0 && touched_block.tag != previousTag)
         {
             previousTag = touched_block.tag;
             CCNode* current = background->getChildByTag(currentTag);
             CCNode* target  = background->getChildByTag(touched_block.tag);
-
+            
             // ブロックを入れ替える
             BlockFiledsPositionIndex target_position_idex  = getBlockFieldsPositionIndex(touched_block.tag);
             BlockFiledsPositionIndex current_position_idex = getBlockFieldsPositionIndex(currentTag);
@@ -99,10 +107,6 @@ void GameScene::ccTouchMoved(CCTouch* pTouch, CCEvent* pEvent)
 
             CCPoint prePoint = getPosition(current_position_idex.x, current_position_idex.y);
             current->setPosition(getPosition(target_position_idex.x, target_position_idex.y));
-            
-            CCLog("ccTouchMoved currentTag: %i, touched_block_tag: %i", currentTag, touched_block.tag);
-            CCLog("ccTouchMoved CurrentX: %i, CurrentY: %i", current_position_idex.x, current_position_idex.y);
-            CCLog("ccTouchMoved prePointX: %f, prePointY: %f", prePoint.x, prePoint.y);
             
             CCMoveTo* targetMove = CCMoveTo::create(0.2f, prePoint);
             CCPlaySE* playSe = CCPlaySE::create(kSEMoveBlock);
@@ -621,7 +625,6 @@ void GameScene::prependRemoveBlocks()
             counter = crossBlockCounting(x, y, blockFields[x][y]->getType());
             if (counter >= kBlockPurgeThreshold)
             {
-                CCLog("prependRemoveBlocks x: %i, y: %i", x, y);
                 prependRemoveBlocks();
             }
         }
@@ -633,34 +636,4 @@ void GameScene::removeTempTag(CCNode* sender, void* target_tag)
     CCNode* target = background->getChildByTag((int)target_tag);
     background->removeChild(sender, true);
     target->setVisible(true);
-}
-
-void GameScene::testCreateBlock()
-{
-	int tag = kTagBaseBlock;
-    
-	CsvReader* csv = new CsvReader("/Users/NoguchiOsamu/Dropbox/ios_farm/Book1.csv");
-	vector<vector<string> > testTags = csv->all();
-    
-    for (int x = 0; x < kMaxBlockLeft; x++) {
-        vector<BlockSprite*> blocks;
-        for (int y = 0; y < kMaxBlockTop; y++)
-        {
-			stringstream ss;
-			int testBlockType;
-			ss << testTags[y][x];
-			ss >> testBlockType;
-            kBlock blockType = (kBlock)testBlockType;
-            
-            BlockSprite* block = BlockSprite::create(tag, blockType, kStatusNormal);
-            block->setPosition(getPosition(x, y));
-            background->addChild(block, kZOrderBlock, tag);
-            blocks.push_back(block);
-            
-            tag++;
-        }
-        blockFields.push_back(blocks);
-    }
-    blockAreaStartPoint = getPosition(0, 0);
-    blockAreaEndPoint   = getPosition(kMaxBlockLeft-1, kMaxBlockTop-1);
 }
