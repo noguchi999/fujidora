@@ -46,7 +46,12 @@ enum kTag
     kTagYellowLabel,
     kTagGreenLabel,
     kTagGrayLabel,
-    kTagScoreLabel,
+    kTagRedScore,
+    kTagBlueScore,
+    kTagYellowScore,
+    kTagGreenScore,
+    kTagGrayScore,
+    kTagScoreScore,
     kTagGameOver,
     kTagHighScoreLabel,
     kTagBaseBlock = 10000
@@ -101,7 +106,6 @@ private:
     CCSprite* background;
     float blockSize;
     vector<kBlock> blockTypes;
-    int score;
     int currentTag;
     int tmpCurrentTag;
     int previousTag;
@@ -116,6 +120,7 @@ private:
     void initForVariables();
     void createBackground();
     void createBlock();
+    void createLabel();
     void createHighScoreLabel();
     void createResetButton();
 

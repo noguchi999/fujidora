@@ -10,7 +10,6 @@ GameScene::GameScene()
 :currentTag(0)
 ,tmpCurrentTag(0)
 ,previousTag(0)
-,score(0)
 ,winSize(CCDirector::sharedDirector()->getWinSize())
 {
     srand((unsigned)time(NULL));
@@ -38,6 +37,7 @@ bool GameScene::init()
     initForVariables();
     createBackground();
     createBlock();
+    createLabel();
     createHighScoreLabel();
     createResetButton();
     
@@ -180,6 +180,54 @@ void GameScene::createBlock()
     blockAreaEndPoint   = getPosition(kMaxBlockLeft-1, kMaxBlockTop-1);
 }
 
+void GameScene::createLabel()
+{
+    CCSize bgSize = background->getContentSize();
+    
+    BlockSprite* red   = BlockSprite::create(kTagRedLabel, kBlockRed, kStatusNormal);
+    BlockSprite* blue  = BlockSprite::create(kTagBlueLabel, kBlockBlue, kStatusNormal);
+    BlockSprite* yellow = BlockSprite::create(kTagYellowLabel, kBlockYellow, kStatusNormal);
+    BlockSprite* green = BlockSprite::create(kTagGreenLabel, kBlockGreen, kStatusNormal);
+    BlockSprite* gray  = BlockSprite::create(kTagGrayLabel, kBlockGray, kStatusNormal);
+    
+    red->cocos2d::CCNode::setScale(0.8);
+    blue->cocos2d::CCNode::setScale(0.8);
+    yellow->cocos2d::CCNode::setScale(0.8);
+    green->cocos2d::CCNode::setScale(0.8);
+    gray->cocos2d::CCNode::setScale(0.8);
+    
+    red->setPosition(ccp(bgSize.width * 0.73, bgSize.height * 0.61));
+    blue->setPosition(ccp(bgSize.width * 0.73, bgSize.height * 0.51));
+    yellow->setPosition(ccp(bgSize.width * 0.73, bgSize.height * 0.41));
+    green->setPosition(ccp(bgSize.width * 0.73, bgSize.height * 0.31));
+    gray->setPosition(ccp(bgSize.width * 0.73, bgSize.height * 0.21));
+    
+    background->addChild(red, kZOrderLabel, kTagRedLabel);
+    background->addChild(blue, kZOrderLabel, kTagBlueLabel);
+    background->addChild(yellow, kZOrderLabel, kTagYellowLabel);
+    background->addChild(green, kZOrderLabel, kTagGreenLabel);
+    background->addChild(gray, kZOrderLabel, kTagGrayLabel);
+    
+    const char* initCountStr = ccsf("%04d", 0);
+    CCLabelBMFont* red_label = CCLabelBMFont::create(initCountStr, kFontRed);
+    CCLabelBMFont* blue_label = CCLabelBMFont::create(initCountStr, kFontBlue);
+    CCLabelBMFont* yellow_label = CCLabelBMFont::create(initCountStr, kFontYellow);
+    CCLabelBMFont* green_label = CCLabelBMFont::create(initCountStr, kFontGreen);
+    CCLabelBMFont* gray_label = CCLabelBMFont::create(initCountStr, kFontGray);
+    
+    red_label->setPosition(ccp(bgSize.width * 0.8, bgSize.height * 0.6));
+    blue_label->setPosition(ccp(bgSize.width * 0.8, bgSize.height * 0.5));
+    yellow_label->setPosition(ccp(bgSize.width * 0.8, bgSize.height * 0.4));
+    green_label->setPosition(ccp(bgSize.width * 0.8, bgSize.height * 0.3));
+    gray_label->setPosition(ccp(bgSize.width * 0.8, bgSize.height * 0.2));
+    
+    background->addChild(red_label, kZOrderLabel, kTagRedScore);
+    background->addChild(blue_label, kZOrderLabel, kTagBlueScore);
+    background->addChild(yellow_label, kZOrderLabel, kTagYellowScore);
+    background->addChild(green_label, kZOrderLabel, kTagGreenScore);
+    background->addChild(gray_label, kZOrderLabel, kTagGrayScore);
+}
+
 void GameScene::createHighScoreLabel()
 {
     CCSize bgSize = background->getContentSize();
@@ -253,20 +301,6 @@ void GameScene::removingParticle(cocos2d::CCNode *particle)
     particle->removeFromParentAndCleanup(true);
 }
 
-void GameScene::saveHighScore()
-{
-    CCUserDefault* userDefault = CCUserDefault::sharedUserDefault();
-    
-    int oldHighScore = userDefault->getIntegerForKey(kHighScore, 0);
-    if (oldHighScore < score)
-    {
-        userDefault->setIntegerForKey(kHighScore, score);
-        userDefault->flush();
-        
-        createHighScoreLabel();
-    }
-}
-
 void GameScene::menuResetCallback(cocos2d::CCObject* pSender)
 {
     GameScene* scene = GameScene::create();
@@ -315,6 +349,19 @@ void GameScene::removeBlocksAction()
         CCCallFuncN* removingParticleFunction = CCCallFuncN::create(this, callfuncN_selector(GameScene::removingParticle));
         CCFiniteTimeAction* shrinkParticalSequence = CCSequence::create(burst, clear, removingParticleFunction, NULL);
         CCNode* partial = createParticle("lizi.plist", blockFields[x][y]->getPosition());
+        
+        CCSize bgSize = background->getContentSize();
+        CCLabelBMFont* red_label = (CCLabelBMFont*)background->getChildByTag(kTagRedScore);
+        CCLabelBMFont* blue_label = (CCLabelBMFont*)background->getChildByTag(kTagBlueScore);
+        CCLabelBMFont* yellow_label = (CCLabelBMFont*)background->getChildByTag(kTagYellowScore);
+        CCLabelBMFont* green_label = (CCLabelBMFont*)background->getChildByTag(kTagGreenScore);
+        CCLabelBMFont* gray_label = (CCLabelBMFont*)background->getChildByTag(kTagGrayScore);
+        
+        red_label->setString(ccsf("%04d", (removedBlockTypesCounter[kBlockRed]) / kBlockPurgeThreshold));
+        blue_label->setString(ccsf("%04d", (removedBlockTypesCounter[kBlockBlue]) / kBlockPurgeThreshold));
+        yellow_label->setString(ccsf("%04d", (removedBlockTypesCounter[kBlockYellow]) / kBlockPurgeThreshold));
+        green_label->setString(ccsf("%04d", (removedBlockTypesCounter[kBlockGreen]) / kBlockPurgeThreshold));
+        gray_label->setString(ccsf("%04d", (removedBlockTypesCounter[kBlockGray]) / kBlockPurgeThreshold));
         
         if (isFirst) {
             CCPlaySE* playSe = CCPlaySE::create(kSERemoveBlock);
